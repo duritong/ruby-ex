@@ -24,6 +24,15 @@ map '/headers' do
   run headers
 end
 
+map '/env' do
+  headers = proc do |env|
+    [200, { "Content-Type" => "text/plain" }, [
+      env.collect {|key,val| "#{key}: #{val}"}.sort.join("\n")
+    ]]
+  end
+  run headers
+end
+
 map '/' do
   welcome = proc do |env|
     [200, { "Content-Type" => "text/html" }, [<<WELCOME_CONTENTS
