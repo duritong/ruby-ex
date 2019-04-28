@@ -1,5 +1,12 @@
 require 'rack/lobster'
 
+require 'prometheus/middleware/collector'
+require 'prometheus/middleware/exporter'
+
+use Rack::Deflater
+use Prometheus::Middleware::Collector
+use Prometheus::Middleware::Exporter
+
 map '/health' do
   health = proc do |env|
     [200, { "Content-Type" => "text/html" }, ["1"]]
@@ -26,7 +33,10 @@ end
 
 map '/' do
   welcome = proc do |env|
-    [200, { "Content-Type" => "text/html" }, [<<WELCOME_CONTENTS
+    if env['PATH_INFO'] != '/'
+      [404,  { "Content-Type" => "text/plain" }, ['Not served by OpenShift'] ]
+    else
+      [200, { "Content-Type" => "text/html" }, [<<WELCOME_CONTENTS
 <!doctype html>
 <html lang="en">
 <head>
@@ -311,7 +321,8 @@ $ git push</pre>
 </body>
 </html>
 WELCOME_CONTENTS
-    ]]
+      ]]
+    end
   end
   run welcome
 end
